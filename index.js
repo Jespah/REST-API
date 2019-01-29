@@ -18,6 +18,8 @@ const connection = mysql.createConnection({
     database : "saastopossu"
 });
 
+app.use(express.json());
+
 connection.connect(function(err){
     if (err) throw err;
     console.log("connected to database");
@@ -26,20 +28,29 @@ connection.connect(function(err){
 app.get("/transactions", (req,res) =>{
     connection.query ("SELECT * FROM tapahtuma",
         function (err, result){
-            if (err) throw err;
+            if (err) {res.sendStatus(400);throw err;}
             else {
-                res.send(result);
+                res.json(result);
             }
         }
     );
 });
 
-app.post("/transactions", (req,res) =>{
-    connection.query ("INSERT INTO tapahtuma (SP_ID, Rahanarvo) VALUES (?, ?)", [req.body.SP_ID, req.body.Rahanarvo],
+app.post("/transactions", (req,res) =>{ 
+    let data = req.body;
+    if (!data) {
+        res.sendStatus(400);}
+    connection.query ("INSERT INTO tapahtuma (SP_ID, Rahanarvo) VALUES (?, ?)", [data.SP_ID, data.Rahanarvo],
         function (err, result) {
-            if (err) throw err;
+            if (err) {res.sendStatus(400);throw err;}
             else {
-                res.send(result);
+                res.json(
+                    {
+                        "messsage":"success",
+                        "status": "200"
+
+                    }
+                );
             }
         }
     );
@@ -48,9 +59,9 @@ app.post("/transactions", (req,res) =>{
 app.get("/transactions/:id", (req,res)=>{
     connection.query ("SELECT * FROM tapahtuma WHERE ID = ?", [req.params.id],
         function (err, result) {
-            if (err) throw err;
+            if (err) {res.sendStatus(400);throw err;}
             else {
-                res.send(result);
+                res.json(result);
             }
         }
     );
